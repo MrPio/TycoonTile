@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3723969465086628033
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3723969465086628038}
+  - component: {fileID: 3723969465086628037}
+  - component: {fileID: 3723969465086628090}
+  m_Layer: 0
+  m_Name: GridMain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3723969465086628038
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3723969465086628033}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!210 &3723969465086628037
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3723969465086628033}
+  m_Enabled: 1
+  m_SortingLayerID: 503911305
+  m_SortingLayer: 3
+  m_SortingOrder: 0
+--- !u!114 &3723969465086628090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3723969465086628033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcb02f0c20fc463c90a76e5b941240b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rows: 5
+  cols: 8
+  tileSize: 0.85
+  tileList:
+  - {fileID: 3709058301325001766, guid: 494ed137c040043408da2103cc747693, type: 3}
+  - {fileID: 655149513463895289, guid: bb0ee01f2a91f9f4f99b17bd1b76753d, type: 3}
+  - {fileID: 2222929584913708911, guid: 98c1e0713fbd1304b9bd1716ed059a0b, type: 3}
+  - {fileID: 5910222593890008427, guid: f65c33906503beb49bbe3409fb1e1aa3, type: 3}
+  - {fileID: 6411113803786093080, guid: 2b6eba4a95ecf7e449849d000983e188, type: 3}
+  chessTiles: 0
+  shade: 1
+  shadeOpacity: 0.4
+  shadeOffsetX: 0
+  shadeOffsetY: -0.144
+  clickable: 1
+  gridType: 2

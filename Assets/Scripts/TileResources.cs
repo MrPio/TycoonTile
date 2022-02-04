@@ -1,13 +1,34 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using Classes;
+using TMPro;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class TileResources : MonoBehaviour
 {
-    private static readonly Color[][] TilesColors = new Color[1][];
+    public enum TileType
+    {
+        Wood
+    }
+
+    public static Dictionary<TileType, Tile[]> TilesDictionary = new()
+    {
+        [TileType.Wood] = new[]
+        {
+            new Tile("Acacia", "logs", 1, "#F2C791"),
+            new Tile("Willow", "logs", 1, "#F2994B"),
+            new Tile("Birch", "logs", 1, "#F2A97E"),
+            new Tile("Pine tree", "logs", 1, "#8C533E"),
+            new Tile("Oak", "logs", 1, "#BF7E78")
+        }
+    };
 
     public float healthMax = 100f;
     public int row, col;
     public int type;
+    public TileType tileType;
 
     private float _offsetY;
     private AudioClip[] _mouseDownAudioClip;
@@ -18,6 +39,8 @@ public class TileResources : MonoBehaviour
     private bool _down;
     private float _downTime;
     private bool _destroying;
+    private GameObject _menuInfo;
+    private static readonly string[] Ages = {"Young", "Adult", "Old"};
 
     private void Start()
     {
@@ -50,14 +73,6 @@ public class TileResources : MonoBehaviour
             Resources.Load("Sounds/wood2") as AudioClip,
             Resources.Load("Sounds/wood3") as AudioClip,
             Resources.Load("Sounds/wood4") as AudioClip
-        };
-        TilesColors[0] = new[]
-        {
-            HexToColor("#F2C791"),
-            HexToColor("#F2994B"),
-            HexToColor("#F2A97E"),
-            HexToColor("#8C533E"),
-            HexToColor("#BF7E78")
         };
         _health = healthMax;
     }
@@ -93,6 +108,9 @@ public class TileResources : MonoBehaviour
         gameObject.transform.position = (Vector2) transform.position + new Vector2(0f, _offsetY);
         GetComponent<AudioSource>().clip = _mouseDownAudioClip[Random.Range(0, _mouseDownAudioClip.Length)];
         GetComponent<AudioSource>().Play();
+
+        if (_menuInfo != null)
+            Destroy(_menuInfo);
     }
 
     private void OnMouseUp()
@@ -106,9 +124,42 @@ public class TileResources : MonoBehaviour
         gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = null;
     }
 
+    private void OnMouseEnter()
+    {
+        _menuInfo = Instantiate(Resources.Load("SelectedItemInfo") as GameObject, GameObject.Find("Canvas").transform, true);
+        var mouse = Input.mousePosition;
+        mouse.z = 10;
+        var mousePos = (Vector2) Camera.main!.ScreenToWorldPoint(mouse);
+        if (mousePos.Equals(Vector3.zero)) return;
+        _menuInfo.transform.position = (Vector3) mousePos + _menuInfo.transform.localScale / 1f;
+        _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().text=TilesDictionary[tileType][type].name;
+        _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().color=HexToColor(TilesDictionary[tileType][type].color);
+        _menuInfo.gameObject.transform.Find("logs").GetComponent<TextMeshProUGUI>().text=TilesDictionary[tileType][type].resourcesCount.ToString();
+        _menuInfo.gameObject.transform.Find("age").GetComponent<TextMeshProUGUI>().text=Ages[Random.Range(0,Ages.Length)];
+    }
+
+    private void OnMouseExit()
+    {
+        Destroy(_menuInfo);
+    }
+
+    private void OnMouseOver()
+    {
+        if (_menuInfo == null)
+            return;
+
+        var mouse = Input.mousePosition;
+        mouse.z = 10;
+        if (Camera.main == null) return;
+        var mousePos = (Vector2) Camera.main.ScreenToWorldPoint(mouse);
+        var l2 = _menuInfo.transform.localScale / 1f;
+        if (mousePos.Equals(Vector3.zero)) return;
+        _menuInfo.transform.position = (Vector3) mousePos + l2;
+    }
+
     public void SetOffsetY(float offsetY)
     {
-        this._offsetY = offsetY;
+        _offsetY = offsetY;
     }
 
     private void Destroy()
@@ -119,7 +170,7 @@ public class TileResources : MonoBehaviour
 
         GameObject.Find("GridMain").GetComponent<GridSystem>().Grid[row][col] = null;
 
-        DestroyEffect(Random.Range(6, 12), TilesColors[0][type]);
+        DestroyEffect(Random.Range(6, 12), HexToColor(TilesDictionary[tileType][type].color));
 
         var color = GetComponent<SpriteRenderer>().color;
         color.a = 0f;
@@ -137,7 +188,7 @@ public class TileResources : MonoBehaviour
                 .PlayOneShot(_destroyedAudioClip[Random.Range(0, _destroyedAudioClip.Length)]);
             var script = tile.GetComponent<TileResources>();
             GameObject.Find("GridMain").GetComponent<GridSystem>().Grid[script.row][script.col] = null;
-            script.DestroyEffect(Random.Range(6, 12), TilesColors[0][tile.GetComponent<TileResources>().type]);
+            script.DestroyEffect(Random.Range(6, 12), HexToColor(TilesDictionary[tileType][tile.GetComponent<TileResources>().type].color));
             Destroy(tile);
         }
 
@@ -160,7 +211,7 @@ public class TileResources : MonoBehaviour
 
             var direction = circle.getPointFromAngle(alpha) - circle.center;
             circleGo.GetComponent<Rigidbody2D>().velocity = direction * CircleScript.Velocity;
-            circleGo.GetComponent<Rigidbody2D>().AddForce(-direction);
+            circleGo.GetComponent<Rigidbody2D>().AddForce(-direction*1600f);
 
             alpha += (2 * Mathf.PI) / num;
         }

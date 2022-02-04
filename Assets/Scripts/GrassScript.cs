@@ -11,28 +11,29 @@ public class GrassScript : MonoBehaviour
 
     public void SpawnTree()
     {
-        spawn(treeCount, treeAvaibleList, 1.4f, new Vector2(2f, 4f));
+        Spawn(treeCount, treeAvaibleList, 1.4f, new Vector2(2f, 4f));
     }
 
     public void SpawnFlowers()
     {
-        spawn(flowerCount, flowersAvaibleList, 1.5f, new Vector2(1f, 2f));
+        Spawn(flowerCount, flowersAvaibleList, 1.5f, new Vector2(1f, 2f));
     }
 
-    void spawn(int howMany, List<GameObject> gameObjects, float scaleAroundGrid, Vector2 sizeRange)
+    void Spawn(int howMany, List<GameObject> gameObjects, float scaleAroundGrid, Vector2 sizeRange)
     {
         var script = GameObject.Find("GridGrass").GetComponent<GridSystem>();
         var boxCollider = GameObject.Find("GridMain").GetComponent<BoxCollider2D>();
-        boxCollider.size = boxCollider.size * scaleAroundGrid;
+        boxCollider.size *= scaleAroundGrid;
         boxCollider.enabled = true;
         int sqrt = (int) Mathf.Sqrt(howMany);
         for (int i = 0; i < sqrt; ++i)
         {
             for (int j = 0; j < sqrt; ++j)
             {
-                Vector2 spawnPoint;
+                Vector2 spawnPoint = default;
                 do
                 {
+                    if (script.size.Equals(Vector2.zero)) break;
                     spawnPoint = new Vector2(Random.Range(-script.size.x / 2, script.size.x / 2),
                         script.size.y * i / sqrt - script.size.y / 2);
                 } while (boxCollider.OverlapPoint(spawnPoint));

@@ -22,7 +22,7 @@ public class CameraScript : MonoBehaviour
         /*if ((Camera.main.ScreenToViewportPoint(Input.mousePosition).x < 0.2f || Camera.main.ScreenToViewportPoint(Input.mousePosition).x > 0.8f ||
             Camera.main.ScreenToViewportPoint(Input.mousePosition).y < 0.3f || Camera.main.ScreenToViewportPoint(Input.mousePosition).y > 0.7f))
         {*/
-            var direction = ((Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition) - new Vector2(0.5f, 0.5f));
+            var direction = ((Vector2)Camera.main!.ScreenToViewportPoint(Input.mousePosition) - new Vector2(0.5f, 0.5f));
             animationBorderTime += Time.deltaTime;
             transform.position = new Vector3(0, 0, -10) + (Vector3)direction.normalized *
             new ParabolaInterpolator(0.71f).interpolator(direction.magnitude) * 0.8f;
@@ -32,8 +32,9 @@ public class CameraScript : MonoBehaviour
 
     void OnGUI()
     {
-        if (32.7f < GetComponent<Camera>().fieldOfView - Input.mouseScrollDelta.y &&
-            GetComponent<Camera>().fieldOfView - Input.mouseScrollDelta.y < 80f)
-            GetComponent<Camera>().fieldOfView -= Input.mouseScrollDelta.y;
+        var sensorSize = GetComponent<Camera>().orthographicSize;
+        var scrollDelta = Input.mouseScrollDelta.y / 3f;
+        if (3.5f < sensorSize - scrollDelta && sensorSize - scrollDelta < 15f)
+            GetComponent<Camera>().orthographicSize -= scrollDelta;
     }
 }

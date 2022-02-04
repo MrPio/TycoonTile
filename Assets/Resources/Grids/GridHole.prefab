@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3315624256437429179
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3315624256437429180}
+  - component: {fileID: 7875441242809867459}
+  - component: {fileID: 7875441242809867460}
+  m_Layer: 0
+  m_Name: GridHole
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3315624256437429180
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3315624256437429179}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!210 &7875441242809867459
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3315624256437429179}
+  m_Enabled: 1
+  m_SortingLayerID: -1387535563
+  m_SortingLayer: 2
+  m_SortingOrder: 0
+--- !u!114 &7875441242809867460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3315624256437429179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcb02f0c20fc463c90a76e5b941240b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rows: 7
+  cols: 10
+  tileSize: 1
+  tileList:
+  - {fileID: 4191537932957294218, guid: 6a0fe5bf7c791494dbabb463cfe71d4a, type: 3}
+  chessTiles: 0
+  shade: 0
+  shadeOpacity: 0.4
+  shadeOffsetX: 0.1
+  shadeOffsetY: 0.1
+  clickable: 0
+  gridType: 1

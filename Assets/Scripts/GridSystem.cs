@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Classes;
 using UnityEngine;
 
 public class GridSystem : MonoBehaviour
@@ -9,7 +11,7 @@ public class GridSystem : MonoBehaviour
         GridHole,
         GridMain
     }
-
+    
     [SerializeField] private int rows = 5;
     [SerializeField] private int cols = 8;
     [SerializeField] [Range(0, 1)] private float tileSize = 1;
@@ -22,54 +24,55 @@ public class GridSystem : MonoBehaviour
     [SerializeField] private bool clickable;
     [SerializeField] private GridType gridType;
     public GameObject[][] Grid;
-    public Vector2 bottomLeftPoint;
-    public Vector2 size;
+    private static readonly HashSet<GridType> Spawned=new();
+    private bool _treeSpawned;
 
-    // Start is called before the first frame update
+    public Vector2 bottomLeftPoint { get; private set; }
+    public Vector2 size { get; private set; }
+
     void Start()
     {
         Grid = new GameObject[rows][];
         for (var i = 0; i < Grid.Length; i++)
-            Grid[i++] = new GameObject[cols];
+            Grid[i] = new GameObject[cols];
         GenerateGrid();
     }
 
     private void GenerateGrid()
     {
         for (var row = 0; row < rows; row++)
+        for (var col = 0; col < cols; col++)
         {
-            for (var col = 0; col < cols; col++)
+            float posX = col;
+            float posY = row;
+            if (shade)
             {
-                float posX = col;
-                float posY = row;
-                if (shade)
-                {
-                    var shadeGo = (GameObject) Instantiate(Resources.Load("tile_shade"), transform);
-                    shadeGo.transform.position = new Vector2(posX, posY) + new Vector2(shadeOffsetX, shadeOffsetY);
-                    shadeGo.transform.localScale = new Vector2(tileSize, tileSize);
-                    shadeGo.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, shadeOpacity);
-                }
-
-                int typeNum;
-                if (chessTiles)
-                    typeNum = (row + col) % 2;
-                else
-                    typeNum = Random.Range(0, tileList.Count);
-                var tile = (GameObject) Instantiate(tileList[typeNum], transform);
-                tile.transform.position = new Vector2(posX, posY);
-                tile.transform.localScale = new Vector2(tileSize, tileSize);
-                if (clickable)
-                {
-                    tile.AddComponent<TileResources>();
-                    tile.AddComponent<AudioSource>();
-                    tile.GetComponent<TileResources>().SetOffsetY(shadeOffsetY);
-                    tile.GetComponent<TileResources>().row = row;
-                    tile.GetComponent<TileResources>().col = col;
-                    tile.GetComponent<TileResources>().type = typeNum;
-                }
-
-                Grid[row][col] = tile;
+                var shadeGo = (GameObject) Instantiate(Resources.Load("tile_shade"), transform);
+                shadeGo.transform.position = new Vector2(posX, posY) + new Vector2(shadeOffsetX, shadeOffsetY);
+                shadeGo.transform.localScale = new Vector2(tileSize, tileSize);
+                shadeGo.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, shadeOpacity);
             }
+
+            int typeNum;
+            if (chessTiles)
+                typeNum = (row + col) % 2;
+            else
+                typeNum = Random.Range(0, tileList.Count);
+            var tile = (GameObject) Instantiate(tileList[typeNum], transform);
+            tile.transform.position = new Vector2(posX, posY);
+            tile.transform.localScale = new Vector2(tileSize, tileSize);
+            if (clickable)
+            {
+                tile.AddComponent<TileResources>();
+                tile.AddComponent<AudioSource>();
+                tile.GetComponent<TileResources>().SetOffsetY(shadeOffsetY);
+                tile.GetComponent<TileResources>().row = row;
+                tile.GetComponent<TileResources>().col = col;
+                tile.GetComponent<TileResources>().type = typeNum;
+                tile.GetComponent<TileResources>().tileType = TileResources.TileType.Wood;
+            }
+
+            Grid[row][col] = tile;
         }
 
         float gridW = cols * 1;
@@ -83,10 +86,13 @@ public class GridSystem : MonoBehaviour
         gameObject.GetComponent<BoxCollider2D>().offset = -bottomLeftPoint;
         gameObject.GetComponent<BoxCollider2D>().enabled = false;
 
-        if (gridType == GridType.GridGrass)
+        Spawned.Add(gridType);
+
+        if (!_treeSpawned && Spawned.Contains(GridType.GridGrass) && Spawned.Contains(GridType.GridMain))
         {
-            gameObject.GetComponent<GrassScript>().SpawnTree();
-            gameObject.GetComponent<GrassScript>().SpawnFlowers();
+            _treeSpawned = true;
+            GameObject.Find("GridGrass").GetComponent<GrassScript>().SpawnTree();
+            GameObject.Find("GridGrass").GetComponent<GrassScript>().SpawnFlowers();
         }
     }
 
