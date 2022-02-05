@@ -69,7 +69,7 @@ public class GridSystem : MonoBehaviour
                 tile.GetComponent<TileResources>().row = row;
                 tile.GetComponent<TileResources>().col = col;
                 tile.GetComponent<TileResources>().type = typeNum;
-                tile.GetComponent<TileResources>().tileType = TileResources.TileType.Wood;
+                tile.GetComponent<TileResources>().tile = TileResources.TilesDictionary[Tile.TileType.Wood][typeNum];
             }
 
             Grid[row][col] = tile;
@@ -84,6 +84,7 @@ public class GridSystem : MonoBehaviour
         gameObject.AddComponent<BoxCollider2D>();
         gameObject.GetComponent<BoxCollider2D>().size = new Vector2(gridW, gridH);
         gameObject.GetComponent<BoxCollider2D>().offset = -bottomLeftPoint;
+        //gameObject.GetComponent<BoxCollider2D>().isTrigger = true;
         gameObject.GetComponent<BoxCollider2D>().enabled = false;
 
         Spawned.Add(gridType);

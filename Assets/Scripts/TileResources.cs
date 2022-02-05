@@ -2,33 +2,30 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Classes;
+using DefaultNamespace;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class TileResources : MonoBehaviour
 {
-    public enum TileType
+    public static readonly Dictionary<Tile.TileType, Tile[]> TilesDictionary = new()
     {
-        Wood
-    }
-
-    public static Dictionary<TileType, Tile[]> TilesDictionary = new()
-    {
-        [TileType.Wood] = new[]
+        [Tile.TileType.Wood] = new[]
         {
-            new Tile("Acacia", "logs", 1, "#F2C791"),
-            new Tile("Willow", "logs", 1, "#F2994B"),
-            new Tile("Birch", "logs", 1, "#F2A97E"),
-            new Tile("Pine tree", "logs", 1, "#8C533E"),
-            new Tile("Oak", "logs", 1, "#BF7E78")
+            new Tile("Acacia", "logs", 1, "#F2C791", Tile.TileType.Wood),
+            new Tile("Willow", "logs", 1, "#F2994B", Tile.TileType.Wood),
+            new Tile("Birch", "logs", 1, "#F2A97E", Tile.TileType.Wood),
+            new Tile("Pine tree", "logs", 1, "#8C533E", Tile.TileType.Wood),
+            new Tile("Oak", "logs", 1, "#BF7E78", Tile.TileType.Wood)
         }
     };
 
     public float healthMax = 100f;
     public int row, col;
     public int type;
-    public TileType tileType;
+    public Tile tile;
+    public List<GameObject> droppedResources = new();
 
     private float _offsetY;
     private AudioClip[] _mouseDownAudioClip;
@@ -126,16 +123,15 @@ public class TileResources : MonoBehaviour
 
     private void OnMouseEnter()
     {
-        _menuInfo = Instantiate(Resources.Load("SelectedItemInfo") as GameObject, GameObject.Find("Canvas").transform, true);
-        var mouse = Input.mousePosition;
-        mouse.z = 10;
-        var mousePos = (Vector2) Camera.main!.ScreenToWorldPoint(mouse);
-        if (mousePos.Equals(Vector3.zero)) return;
-        _menuInfo.transform.position = (Vector3) mousePos + _menuInfo.transform.localScale / 1f;
-        _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().text=TilesDictionary[tileType][type].name;
-        _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().color=HexToColor(TilesDictionary[tileType][type].color);
-        _menuInfo.gameObject.transform.Find("logs").GetComponent<TextMeshProUGUI>().text=TilesDictionary[tileType][type].resourcesCount.ToString();
-        _menuInfo.gameObject.transform.Find("age").GetComponent<TextMeshProUGUI>().text=Ages[Random.Range(0,Ages.Length)];
+        _menuInfo = Instantiate(Resources.Load("SelectedItemInfo") as GameObject, GameObject.Find("Canvas").transform,
+            true);
+        _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().text = tile.name;
+        _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().color = HexToColor(tile.color);
+        _menuInfo.gameObject.transform.Find("logs").GetComponent<TextMeshProUGUI>().text =
+            tile.resourcesCount.ToString();
+        _menuInfo.gameObject.transform.Find("age").GetComponent<TextMeshProUGUI>().text =
+            Ages[Random.Range(0, Ages.Length)];
+        ArrangeMenuInfo();
     }
 
     private void OnMouseExit()
@@ -147,14 +143,18 @@ public class TileResources : MonoBehaviour
     {
         if (_menuInfo == null)
             return;
+        ArrangeMenuInfo();
+    }
 
+    private void ArrangeMenuInfo()
+    {
         var mouse = Input.mousePosition;
         mouse.z = 10;
         if (Camera.main == null) return;
         var mousePos = (Vector2) Camera.main.ScreenToWorldPoint(mouse);
-        var l2 = _menuInfo.transform.localScale / 1f;
+        var size = _menuInfo.transform.localScale / 0.86f;
         if (mousePos.Equals(Vector3.zero)) return;
-        _menuInfo.transform.position = (Vector3) mousePos + l2;
+        _menuInfo.transform.position = (Vector3) mousePos + size;
     }
 
     public void SetOffsetY(float offsetY)
@@ -170,7 +170,7 @@ public class TileResources : MonoBehaviour
 
         GameObject.Find("GridMain").GetComponent<GridSystem>().Grid[row][col] = null;
 
-        DestroyEffect(Random.Range(6, 12), HexToColor(TilesDictionary[tileType][type].color));
+        DestroyEffect(Random.Range(6, 12), HexToColor(tile.color));
 
         var color = GetComponent<SpriteRenderer>().color;
         color.a = 0f;
@@ -181,15 +181,15 @@ public class TileResources : MonoBehaviour
 
     private IEnumerator ChainDestroy()
     {
-        foreach (var tile in GameObject.Find("GridMain").GetComponent<GridSystem>().GetFlow(gameObject))
+        foreach (var t in GameObject.Find("GridMain").GetComponent<GridSystem>().GetFlow(gameObject))
         {
             yield return new WaitForSeconds(0.1f);
             GameObject.Find("Main Camera").GetComponent<AudioSource>()
                 .PlayOneShot(_destroyedAudioClip[Random.Range(0, _destroyedAudioClip.Length)]);
-            var script = tile.GetComponent<TileResources>();
+            var script = t.GetComponent<TileResources>();
             GameObject.Find("GridMain").GetComponent<GridSystem>().Grid[script.row][script.col] = null;
-            script.DestroyEffect(Random.Range(6, 12), HexToColor(TilesDictionary[tileType][tile.GetComponent<TileResources>().type].color));
-            Destroy(tile);
+            script.DestroyEffect(Random.Range(6, 12), HexToColor(t.GetComponent<TileResources>().tile.color));
+            Destroy(t);
         }
 
         Destroy(gameObject);
@@ -211,9 +211,20 @@ public class TileResources : MonoBehaviour
 
             var direction = circle.getPointFromAngle(alpha) - circle.center;
             circleGo.GetComponent<Rigidbody2D>().velocity = direction * CircleScript.Velocity;
-            circleGo.GetComponent<Rigidbody2D>().AddForce(-direction*1600f);
+            circleGo.GetComponent<Rigidbody2D>().AddForce(-direction * 1600f);
 
-            alpha += (2 * Mathf.PI) / num;
+            alpha += 2 * Mathf.PI / num;
+        }
+
+        circle = new Circle(0.6f, transform.position);
+        for (int i = 0; i < tile.resourcesCount; ++i)
+        {
+            alpha = Random.Range(0, Mathf.PI);
+            var res = Instantiate(Resources.Load("log_resource") as GameObject, GameObject.Find("Plane").transform);
+            res.transform.position = circle.getPointFromAngle(alpha);
+            res.GetComponent<LogResourceScript>().circle = circle;
+            res.GetComponent<LogResourceScript>().alpha = alpha;
+            droppedResources.Add(res);
         }
     }
 

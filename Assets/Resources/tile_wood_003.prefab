@@ -51,13 +51,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2797039455681809966, guid: 494ed137c040043408da2103cc747693, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3586675060097319139, guid: 494ed137c040043408da2103cc747693, type: 3}
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 18f5b7d2f9f43884085d3a4610caeb0c, type: 3}
     - target: {fileID: 3709058301325001766, guid: 494ed137c040043408da2103cc747693, type: 3}
       propertyPath: m_Name
-      value: tile_wood_001 (1)
+      value: tile_wood_003
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 494ed137c040043408da2103cc747693, type: 3}
