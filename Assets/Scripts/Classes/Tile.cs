@@ -6,7 +6,11 @@ namespace Classes
     {
         public enum TileType
         {
-            Wood
+            Wood,
+            Clay,
+            Hay,
+            Coal,
+            Water
         }
         public string name { get;  }
         public string resourcesName { get;  }

@@ -36,7 +36,7 @@ public class TileResources : MonoBehaviour
     private bool _down;
     private float _downTime;
     private bool _destroying;
-    private GameObject _menuInfo;
+    private static GameObject _menuInfo;
     private static readonly string[] Ages = {"Young", "Adult", "Old"};
 
     private void Start()
@@ -72,6 +72,9 @@ public class TileResources : MonoBehaviour
             Resources.Load("Sounds/wood4") as AudioClip
         };
         _health = healthMax;
+        _menuInfo = Instantiate(Resources.Load("SelectedItemInfo") as GameObject, GameObject.Find("Canvas").transform,
+            true);
+        _menuInfo.transform.position = new Vector2(-9999, -9999);
     }
 
     void Update()
@@ -107,7 +110,7 @@ public class TileResources : MonoBehaviour
         GetComponent<AudioSource>().Play();
 
         if (_menuInfo != null)
-            Destroy(_menuInfo);
+            _menuInfo.transform.position = new Vector2(-9999, -9999);
     }
 
     private void OnMouseUp()
@@ -123,8 +126,6 @@ public class TileResources : MonoBehaviour
 
     private void OnMouseEnter()
     {
-        _menuInfo = Instantiate(Resources.Load("SelectedItemInfo") as GameObject, GameObject.Find("Canvas").transform,
-            true);
         _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().text = tile.name;
         _menuInfo.gameObject.transform.Find("title").GetComponent<TextMeshProUGUI>().color = HexToColor(tile.color);
         _menuInfo.gameObject.transform.Find("logs").GetComponent<TextMeshProUGUI>().text =
@@ -136,7 +137,7 @@ public class TileResources : MonoBehaviour
 
     private void OnMouseExit()
     {
-        Destroy(_menuInfo);
+        _menuInfo.transform.position = new Vector2(-9999, -9999);
     }
 
     private void OnMouseOver()
@@ -183,7 +184,7 @@ public class TileResources : MonoBehaviour
     {
         foreach (var t in GameObject.Find("GridMain").GetComponent<GridSystem>().GetFlow(gameObject))
         {
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.08f);
             GameObject.Find("Main Camera").GetComponent<AudioSource>()
                 .PlayOneShot(_destroyedAudioClip[Random.Range(0, _destroyedAudioClip.Length)]);
             var script = t.GetComponent<TileResources>();
@@ -228,7 +229,7 @@ public class TileResources : MonoBehaviour
         }
     }
 
-    private static Color HexToColor(string hex)
+    public static Color HexToColor(string hex)
     {
         return ColorUtility.TryParseHtmlString(hex, out var newCol) ? newCol : Color.black;
     }

@@ -1,7 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Classes;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 public class GridSystem : MonoBehaviour
 {
@@ -11,11 +14,14 @@ public class GridSystem : MonoBehaviour
         GridHole,
         GridMain
     }
-    
+
     [SerializeField] private int rows = 5;
     [SerializeField] private int cols = 8;
     [SerializeField] [Range(0, 1)] private float tileSize = 1;
-    [SerializeField] List<Object> tileList = new List<Object>();
+    [SerializeField] Tile.TileType tileType;
+    [SerializeField] List<Object> tileList = new();
+    [SerializeField] List<Object> tileBackgroundList = new();
+    [SerializeField] private bool random;
     [SerializeField] private bool chessTiles;
     [SerializeField] private bool shade;
     [SerializeField] [Range(0.3f, 0.3f)] private float shadeOpacity = 0.4f;
@@ -24,7 +30,8 @@ public class GridSystem : MonoBehaviour
     [SerializeField] private bool clickable;
     [SerializeField] private GridType gridType;
     public GameObject[][] Grid;
-    private static readonly HashSet<GridType> Spawned=new();
+    public GameObject[][] BackgroundGrid;
+    private static readonly HashSet<GridType> Spawned = new();
     private bool _treeSpawned;
 
     public Vector2 bottomLeftPoint { get; private set; }
@@ -32,60 +39,108 @@ public class GridSystem : MonoBehaviour
 
     void Start()
     {
-        Grid = new GameObject[rows][];
+        Grid = new GameObject[rows + 2][];
         for (var i = 0; i < Grid.Length; i++)
-            Grid[i] = new GameObject[cols];
+            Grid[i] = new GameObject[cols + 2];
+
+        BackgroundGrid = new GameObject[rows + 2][];
+        for (var i = 0; i < BackgroundGrid.Length; i++)
+            BackgroundGrid[i] = new GameObject[cols + 2];
         GenerateGrid();
     }
 
     private void GenerateGrid()
     {
-        for (var row = 0; row < rows; row++)
-        for (var col = 0; col < cols; col++)
+        for (var row = 1; row < rows+1; row++)
         {
-            float posX = col;
-            float posY = row;
-            if (shade)
+            for (var col = 1; col < cols+1; col++)
             {
-                var shadeGo = (GameObject) Instantiate(Resources.Load("tile_shade"), transform);
-                shadeGo.transform.position = new Vector2(posX, posY) + new Vector2(shadeOffsetX, shadeOffsetY);
-                shadeGo.transform.localScale = new Vector2(tileSize, tileSize);
-                shadeGo.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, shadeOpacity);
-            }
+                //Random Generation
+                if (random && Random.Range(0f, 1f) > GetSpawnProbability(col, row))
+                    continue;
 
-            int typeNum;
-            if (chessTiles)
-                typeNum = (row + col) % 2;
-            else
-                typeNum = Random.Range(0, tileList.Count);
-            var tile = (GameObject) Instantiate(tileList[typeNum], transform);
-            tile.transform.position = new Vector2(posX, posY);
-            tile.transform.localScale = new Vector2(tileSize, tileSize);
-            if (clickable)
-            {
-                tile.AddComponent<TileResources>();
-                tile.AddComponent<AudioSource>();
-                tile.GetComponent<TileResources>().SetOffsetY(shadeOffsetY);
-                tile.GetComponent<TileResources>().row = row;
-                tile.GetComponent<TileResources>().col = col;
-                tile.GetComponent<TileResources>().type = typeNum;
-                tile.GetComponent<TileResources>().tile = TileResources.TilesDictionary[Tile.TileType.Wood][typeNum];
-            }
+                //Tile Background
+                if (tileBackgroundList.Count > 0)
+                {
+                    for (int i = -1; i < 2; ++i)
+                    for (int j = -1; j < 2; ++j)
+                        if (BackgroundGrid[row + j][col + i] == null)
+                        {
+                            var backgroundTileGo1 =
+                                (GameObject) Instantiate(tileBackgroundList[Random.Range(0, tileBackgroundList.Count)],
+                                    transform);
+                            backgroundTileGo1.transform.position = new Vector2(col + i, row + j);
+                            backgroundTileGo1.transform.localScale = new Vector2(1, 1);
+                            backgroundTileGo1.GetComponent<SpriteRenderer>().sortingLayerName = "Hole";
+                            BackgroundGrid[row + j][col + i] = backgroundTileGo1;
+                        }
 
-            Grid[row][col] = tile;
+                    var backgroundTileGo =
+                        (GameObject) Instantiate(tileBackgroundList[Random.Range(0, tileBackgroundList.Count)],
+                            transform);
+                    backgroundTileGo.transform.position = new Vector2(col, row);
+                    backgroundTileGo.transform.localScale = new Vector2(1, 1);
+                    backgroundTileGo.GetComponent<SpriteRenderer>().sortingLayerName = "Hole";
+                    BackgroundGrid[row][col] = backgroundTileGo;
+                }
+
+                //Tile Shadow
+                if (shade)
+                {
+                    var shadeGo = (GameObject) Instantiate(Resources.Load("tile_shade"), transform);
+                    shadeGo.transform.position = new Vector2(col, row) + new Vector2(shadeOffsetX, shadeOffsetY);
+                    shadeGo.transform.localScale = new Vector2(tileSize, tileSize);
+                    shadeGo.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, shadeOpacity);
+                    shadeGo.GetComponent<SpriteRenderer>().sortingLayerName = "Grid";
+                }
+
+                //Chess Tile or random type
+                int typeNum;
+                if (chessTiles)
+                    typeNum = (row + col) % 2;
+                else
+                    typeNum = Random.Range(0, TileResources.TilesDictionary[tileType].Length);
+
+                //Position and scale
+                GameObject tile;
+                if (clickable)
+                    tile = (GameObject) Instantiate(Resources.Load("tile"), transform);
+                else
+                    tile = (GameObject) Instantiate(tileList[typeNum], transform);
+                if (clickable)
+                    tile.GetComponent<SpriteRenderer>().color =
+                        TileResources.HexToColor(TileResources.TilesDictionary[tileType][typeNum].color);
+                tile.transform.position = new Vector2(col, row);
+                tile.transform.localScale = new Vector2(tileSize, tileSize);
+
+                //Tile Clickable, add script
+                if (clickable)
+                {
+                    tile.GetComponent<SpriteRenderer>().sortingLayerName = "Grid";
+                    var tileResources = tile.AddComponent<TileResources>();
+                    tile.AddComponent<AudioSource>();
+                    tileResources.SetOffsetY(shadeOffsetY);
+                    tileResources.row = row;
+                    tileResources.col = col;
+                    tileResources.type = typeNum;
+                    tileResources.tile = TileResources.TilesDictionary[Tile.TileType.Wood][typeNum];
+                }
+
+                //Populate array
+                Grid[row][col] = tile;
+            }
         }
 
-        float gridW = cols * 1;
-        float gridH = rows * 1;
+        float gridW = cols+2;
+        float gridH = rows+2;
         size = new Vector2(gridW, gridH);
         bottomLeftPoint = new Vector2(-gridW / 2 + 1f / 2, -gridH / 2 + 1f / 2);
         transform.position = bottomLeftPoint;
 
-        gameObject.AddComponent<BoxCollider2D>();
-        gameObject.GetComponent<BoxCollider2D>().size = new Vector2(gridW, gridH);
-        gameObject.GetComponent<BoxCollider2D>().offset = -bottomLeftPoint;
-        //gameObject.GetComponent<BoxCollider2D>().isTrigger = true;
-        gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        var boxCollider2D = gameObject.AddComponent<BoxCollider2D>();
+        boxCollider2D.size = new Vector2(gridW, gridH);
+        boxCollider2D.offset = -bottomLeftPoint;
+        boxCollider2D.enabled = false;
 
         Spawned.Add(gridType);
 
@@ -132,7 +187,7 @@ public class GridSystem : MonoBehaviour
         return result;
     }
 
-    private List<GameObject> GetAdjacent(int row, int col)
+    private List<GameObject> GetAdjacent(int row, int col, bool all8Direction = false)
     {
         var result = new List<GameObject>();
 
@@ -144,6 +199,25 @@ public class GridSystem : MonoBehaviour
             result.Add(Grid[row + 1][col]);
         if (col + 1 < Grid[0].Length)
             result.Add(Grid[row][col + 1]);
+
+        if (!all8Direction)
+            return result;
+
+        if (row - 1 >= 0 && col - 1 >= 0)
+            result.Add(Grid[row - 1][col - 1]);
+        if (row + 1 >= 0 && col - 1 >= 0)
+            result.Add(Grid[row + 1][col - 1]);
+        if (row + 1 >= 0 && col + 1 >= 0)
+            result.Add(Grid[row + 1][col + 1]);
+        if (row - 1 >= 0 && col + 1 >= 0)
+            result.Add(Grid[row - 1][col + 1]);
+        return result;
+    }
+
+    private float GetSpawnProbability(int x, int y)
+    {
+        var result = ((cols + rows) / 2f - Math.Abs(x - cols / 2f) - Math.Abs(y - rows / 2f)) /
+            (cols + rows) * 2f;
         return result;
     }
 }
